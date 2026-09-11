@@ -65,6 +65,7 @@ services:
       BLOB_ROOT: /data/blobs
       APP_ORIGIN: ${APP_ORIGIN:-http://localhost:8080}
       TRUSTED_PROXY_HOPS: 1
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
       SMTP_URL: ${SMTP_URL:-smtp://mailpit:1025}
       MAIL_FROM: ${MAIL_FROM:-no-reply@example.com}
       FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY:?run openssl rand -base64 32 and set it in .env}

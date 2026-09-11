@@ -5,7 +5,7 @@ const envFilesHighestPrecedenceFirst = ['.env', '../.env'];
 
 loadDotenv({ path: envFilesHighestPrecedenceFirst, quiet: true });
 
-const requiredInProduction = ['FIELD_ENCRYPTION_KEY', 'EMAIL_LOOKUP_PEPPER', 'SMTP_URL'] as const;
+const requiredInProduction = ['FIELD_ENCRYPTION_KEY', 'EMAIL_LOOKUP_PEPPER'] as const;
 
 const devOnlyDefaults = {
   FIELD_ENCRYPTION_KEY: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
@@ -33,6 +33,7 @@ const envSchema = z
     FIELD_ENCRYPTION_KEY: z.preprocess(blankToUndefined, z.string().optional()),
     EMAIL_LOOKUP_PEPPER: z.preprocess(blankToUndefined, z.string().optional()),
 
+    RESEND_API_KEY: z.preprocess(blankToUndefined, z.string().min(1).optional()),
     SMTP_URL: z.preprocess(blankToUndefined, z.url().optional()),
     MAIL_FROM: z.preprocess(blankToUndefined, z.email().default('no-reply@example.com')),
 
@@ -55,6 +56,13 @@ const envSchema = z
           message: `${key} is required when NODE_ENV=production`,
         });
       }
+    }
+    if (value.RESEND_API_KEY === undefined && value.SMTP_URL === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['RESEND_API_KEY'],
+        message: 'Either RESEND_API_KEY or SMTP_URL is required when NODE_ENV=production',
+      });
     }
   });
 

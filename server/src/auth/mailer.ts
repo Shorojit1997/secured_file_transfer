@@ -6,6 +6,7 @@ import nodemailer from 'nodemailer';
 
 import { env } from '../config/env.js';
 import { logger } from '../logger.js';
+import { sendViaResend } from './resend-transport.js';
 
 const DEV_MAIL_DIR = 'var/mail';
 const IPV4 = 4;
@@ -76,9 +77,13 @@ async function sendViaDevStream(mail: Mail): Promise<void> {
 }
 
 export async function sendMail(mail: Mail): Promise<void> {
+  if (env.RESEND_API_KEY) {
+    await sendViaResend(env.RESEND_API_KEY, mail);
+    return;
+  }
   if (env.SMTP_URL) {
     await sendViaSmtp(env.SMTP_URL, mail);
-  } else {
-    await sendViaDevStream(mail);
+    return;
   }
+  await sendViaDevStream(mail);
 }

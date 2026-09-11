@@ -22,8 +22,8 @@ yarn dev                     # builds shared/, then client on :5100, server on :
 ```
 
 Migrations run automatically at server boot. Open <http://localhost:5100> and
-sign up — with `SMTP_URL` unset, verification and reset emails are written to
-`var/mail/*.eml` instead of sent.
+sign up — with `RESEND_API_KEY` and `SMTP_URL` both unset, verification and
+reset emails are written to `var/mail/*.eml` instead of sent.
 
 To run everything in containers instead, see [Docker](#docker).
 
@@ -217,7 +217,12 @@ docker buildx build --platform linux/amd64 -f client/Dockerfile .
 Both Dockerfiles take the repository root as their build context — they need
 `yarn.lock` and `shared/`. Put TLS termination in front of the `client`
 container, keep `TRUSTED_PROXY_HOPS` equal to the number of proxies ahead of the
-server, and point `SMTP_URL` at a real provider.
+server, and point mail at a real provider.
+
+Mail goes out through Resend over HTTPS when `RESEND_API_KEY` is set, and over
+SMTP through `SMTP_URL` otherwise. Prefer Resend on hosts that block outbound
+SMTP ports — Render, Fly, and Heroku all do — and set `MAIL_FROM` to an address
+on a domain verified in the Resend dashboard, or every send is rejected with a 403.
 
 The server writes ciphertext chunks as the unprivileged `node` user, so whatever
 is mounted at `BLOB_ROOT` has to belong to it. A Docker named volume inherits
@@ -326,9 +331,9 @@ defaults per stack — `http://localhost:5100` for `yarn dev`,
 `http://localhost:8080` for `docker compose up` — so it needs a value only for a
 real domain or a changed `CLIENT_PORT`/`APP_PORT`.
 
-`FIELD_ENCRYPTION_KEY`, `EMAIL_LOOKUP_PEPPER`, and `SMTP_URL` have insecure or
-absent local defaults and are required whenever `NODE_ENV=production`; boot
-fails immediately if one is missing.
+`FIELD_ENCRYPTION_KEY` and `EMAIL_LOOKUP_PEPPER` have insecure local defaults
+and are required whenever `NODE_ENV=production`, as is a mail transport — either
+`RESEND_API_KEY` or `SMTP_URL`. Boot fails immediately if one is missing.
 
 ## Not included yet
 
